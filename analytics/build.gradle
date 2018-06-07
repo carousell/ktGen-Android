@@ -1,9 +1,10 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+import com.thecarousell.plugin.task.GenerateKotlinTask
 
 android {
     compileSdkVersion 27
-
-
 
     defaultConfig {
         minSdkVersion 15
@@ -26,6 +27,18 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+}
+
+sourceSets {
+    main {
+    }
+}
+
+task generateAnalyticsClasses(type: GenerateKotlinTask, dependsOn: 'classes') {
+    srcDir file('events/')
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn generateAnalyticsClasses
 }

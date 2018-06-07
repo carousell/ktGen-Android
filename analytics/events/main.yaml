@@ -1,0 +1,15 @@
+default_table: main_actions
+
+events:
+    - track:
+        name: "ok_button_clicked"
+        type: action
+        condition: User taps on OK button
+        properties:
+            - name: user_id
+              description: ID of the current user
+              type: STRING
+
+            - name: time
+              description: ID generated when promote page loads. See `promote_page_viewed` event.
+              type: INTEGER
