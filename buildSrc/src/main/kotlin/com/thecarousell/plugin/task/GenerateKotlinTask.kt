@@ -20,7 +20,7 @@ open class GenerateKotlinTask : DefaultTask() {
         val eventParser = EventParser()
 
         directory.walk().forEach {
-            if (!it.path.endsWith("yaml", true)) {
+            if (it.path.endsWith("yaml", true)) {
                 try {
                     eventParser.loadFromFile(it)
                 } catch (e: IOException) {
