@@ -23,6 +23,11 @@ android {
         }
     }
 
+    sourceSets {
+        main.java {
+            srcDirs += "build/generated/generatedAnalytics"
+        }
+    }
 }
 
 dependencies {
@@ -30,10 +35,6 @@ dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
 }
 
-sourceSets {
-    main {
-    }
-}
 
 task generateAnalyticsClasses(type: GenerateKotlinTask, dependsOn: 'classes') {
     srcDir file('events/')

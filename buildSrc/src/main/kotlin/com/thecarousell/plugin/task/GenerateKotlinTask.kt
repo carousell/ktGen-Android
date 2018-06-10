@@ -32,7 +32,6 @@ open class GenerateKotlinTask : DefaultTask() {
 	}
 
 	fun generateTrial() {
-//		val analyticsClass = ClassName("", "Analytics")
 		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
 				.addType(TypeSpec.classBuilder("Analytics")
 						.addType(TypeSpec.companionObjectBuilder("")
