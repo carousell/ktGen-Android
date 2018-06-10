@@ -25,7 +25,7 @@ android {
 
     sourceSets {
         main.java {
-            srcDirs += "build/generated/generatedAnalytics"
+            srcDirs += "build/generated/source/generatedAnalytics"
         }
     }
 }
@@ -36,7 +36,7 @@ dependencies {
 }
 
 
-task generateAnalyticsClasses(type: GenerateKotlinTask, dependsOn: 'classes') {
+task generateAnalyticsClasses(type: GenerateKotlinTask) {
     srcDir file('events/')
 }
 
