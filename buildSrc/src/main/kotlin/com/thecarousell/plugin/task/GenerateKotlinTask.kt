@@ -6,7 +6,6 @@ import com.squareup.kotlinpoet.TypeSpec
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.nio.file.Files
 
 open class GenerateKotlinTask : DefaultTask() {
 
@@ -34,7 +33,7 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	fun generateTrial() {
 //		val analyticsClass = ClassName("", "Analytics")
-		val file = FileSpec.builder("", "Analytics")
+		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
 				.addType(TypeSpec.classBuilder("Analytics")
 						.addType(TypeSpec.companionObjectBuilder("")
 								.addFunction(FunSpec.builder("create_ok_button_clickedEvent")
@@ -47,8 +46,10 @@ open class GenerateKotlinTask : DefaultTask() {
 						)
 						.build())
 				.build()
-		val dir = File("analytics/build/generated/source/generatedAnalytics/")
-		Files.createDirectories(dir.toPath());
+		val dir = File("analytics/build/generated/source/generatedAnalytics/com/thecarousell/analytics")
+		if (!dir.exists() && !dir.mkdirs()) {
+			throw IllegalStateException("Couldn't create dir: " + dir);
+		}
 		val classFile = File("analytics/build/generated/source/generatedAnalytics/")
 		file.writeTo(classFile)
 	}
