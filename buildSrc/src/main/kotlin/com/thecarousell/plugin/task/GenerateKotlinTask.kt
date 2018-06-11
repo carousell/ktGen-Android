@@ -62,20 +62,60 @@ open class GenerateKotlinTask : DefaultTask() {
 		val dataModelBuilder = TypeSpec.classBuilder(event.track.name + "Property").addModifiers(KModifier.DATA)
 		val constructorBuilder = FunSpec.constructorBuilder()
 		event.track.properties.forEach {
-			constructorBuilder.addParameter(
-					ParameterSpec.builder(it.name, String::class.asTypeName().asNullable())
-							.defaultValue("null")
-							.build())
-			dataModelBuilder.addProperty(
-					PropertySpec.builder(it.name, String::class.asTypeName().asNullable())
-							.initializer(it.name)
-							.build())
+			constructorBuilder.addParameter(createParameterSpec(it.name, it.type))
+			dataModelBuilder.addProperty(createProperty(it.name, it.type))
 		}
 		return dataModelBuilder.primaryConstructor(constructorBuilder.build()).build()
 	}
 
 	private fun createFunction(event: Event) {
 
+	}
+
+	private fun createProperty(paramName: String, type: String): PropertySpec {
+		val dataType: ClassName
+		when (type) {
+			"STRING" -> {
+				dataType = String::class.asTypeName().asNullable()
+			}
+			"INTEGER" -> {
+				dataType = Int::class.asTypeName()
+			}
+			"BOOLEAN"-> {
+				dataType = Boolean::class.asTypeName()
+			}
+			else -> {
+				dataType = Int::class.asTypeName()
+			}
+		}
+		return PropertySpec.builder(paramName, dataType)
+				.initializer(paramName)
+				.build()
+	}
+
+	private fun createParameterSpec(paramName: String, type: String): ParameterSpec {
+		val dataType: ClassName
+		val defaultValue: String
+		when (type) {
+			"STRING" -> {
+				dataType = String::class.asTypeName().asNullable()
+				defaultValue = "null"
+			}
+			"INTEGER" -> {
+				dataType = Int::class.asTypeName()
+				defaultValue = "0"
+			}
+			"BOOLEAN"-> {
+				dataType = Boolean::class.asTypeName()
+				defaultValue = "false"
+			}
+			else -> {
+				dataType = Int::class.asTypeName()
+				defaultValue = "null"
+			}
+		}
+		return ParameterSpec.builder(paramName, dataType)
+				.defaultValue(defaultValue).build()
 	}
 
 
