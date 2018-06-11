@@ -7,6 +7,16 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
+fun String.toCamelCase(): String {
+	return this.toCamelCaseCapitalized().decapitalize()
+}
+
+fun String.toCamelCaseCapitalized(): String {
+	return this.split('_').joinToString("") {
+		it.capitalize()
+	}
+}
+
 open class GenerateKotlinTask : DefaultTask() {
 
 	lateinit var srcDir: File
@@ -59,11 +69,11 @@ open class GenerateKotlinTask : DefaultTask() {
 
 
 	private fun createDataModel(event: Event): TypeSpec {
-		val dataModelBuilder = TypeSpec.classBuilder(event.track.name + "Property").addModifiers(KModifier.DATA)
+		val dataModelBuilder = TypeSpec.classBuilder(event.track.name.toCamelCaseCapitalized() + "Properties").addModifiers(KModifier.DATA)
 		val constructorBuilder = FunSpec.constructorBuilder()
 		event.track.properties.forEach {
-			constructorBuilder.addParameter(createParameterSpec(it.name, it.type))
-			dataModelBuilder.addProperty(createProperty(it.name, it.type))
+			constructorBuilder.addParameter(createParameterSpec(it.name.toCamelCase(), it.type))
+			dataModelBuilder.addProperty(createProperty(it.name.toCamelCase(), it.type))
 		}
 		return dataModelBuilder.primaryConstructor(constructorBuilder.build()).build()
 	}
