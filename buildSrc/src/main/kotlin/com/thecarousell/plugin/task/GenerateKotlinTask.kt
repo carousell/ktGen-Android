@@ -1,8 +1,7 @@
 package com.thecarousell.plugin.task
 
-import com.squareup.kotlinpoet.FileSpec
-import com.squareup.kotlinpoet.FunSpec
-import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.*
+import com.thecarousell.plugin.model.Event
 import com.thecarousell.plugin.model.EventList
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -17,39 +16,106 @@ open class GenerateKotlinTask : DefaultTask() {
 	@TaskAction
 	fun generateCode() {
 		System.out.println("Parsing files: $srcDir")
-
 		val eventParser = EventParser()
 
 		srcDir.walk().forEach {
 			if (it.name.endsWith(".yaml", true)) try {
 				val eventList = eventParser.loadFromFile(it)
-				generateTrial(eventList)
+				generateAnalyticsClass(eventList)
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
 		}
 	}
 
-	fun generateTrial(eventList: EventList) {
-		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
-				.addType(TypeSpec.classBuilder("Analytics")
-						.addType(TypeSpec.companionObjectBuilder("")
-								.addFunction(FunSpec.builder("create_ok_button_clickedEvent")
-										.addParameter("user_id", String::class)
-										.addParameter("time", String::class)
-										.addStatement("val map = HashMap<String, String>()")
-										.addStatement("map.put(\"user_id\", user_id)")
-										.addStatement("map.put(\"time\", time)")
-										.build()).build()
-						)
-						.build())
-				.build()
-		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
-		if (!dir.exists() && !dir.mkdirs()) {
-			throw IllegalStateException("Couldn't create dir: " + dir);
+	fun generateAnalyticsClass(eventList: EventList) {
+		val eventsFileBuilder = FileSpec.builder("com.thecarousell.analytics", "Events")
+		val modelsFileBuilder = FileSpec.builder("com.thecarousell.analytics", "AnalyticsModels")
+		val eventsClassBuilder = TypeSpec.classBuilder("Events")
+		val companionObjectBuilder = TypeSpec.companionObjectBuilder("")
+
+		eventList.events.forEach {
+			//
+			val dataModel = createDataModel(it)
+			modelsFileBuilder.addType(dataModel)
+			//
+
+			val function = createFunction(it)
+
+			val functionBuilder = FunSpec.builder(it.track.name + "Event")
+					.addStatement("val map = HashMap<String, String>()")
+			it.track.properties.forEach {
+				functionBuilder
+						.addParameter(it.name, String::class)
+						.addStatement("map.put(\"${it.name}\", ${it.name})")
+			}
+			companionObjectBuilder.addFunction(functionBuilder.build())
 		}
-		val directoryFile = File(outDir.absolutePath)
-		file.writeTo(directoryFile)
+
+
+//		analyticsFileBuilder.addType(classBuilder.build()).build()
+		writeFiles(modelsFileBuilder.build())
 	}
 
+
+	private fun createDataModel(event: Event): TypeSpec {
+		val dataModelBuilder = TypeSpec.classBuilder(event.track.name + "Property").addModifiers(KModifier.DATA)
+		val constructorBuilder = FunSpec.constructorBuilder()
+		event.track.properties.forEach {
+			constructorBuilder.addParameter(
+					ParameterSpec.builder(it.name, String::class.asTypeName().asNullable())
+							.defaultValue("null")
+							.build())
+			dataModelBuilder.addProperty(
+					PropertySpec.builder(it.name, String::class.asTypeName().asNullable())
+							.initializer(it.name)
+							.build())
+		}
+		return dataModelBuilder.primaryConstructor(constructorBuilder.build()).build()
+	}
+
+	private fun createFunction(event: Event) {
+
+	}
+
+
+//	fun okButtonClicked(properties: OkButtonClickedProperties) {
+//		val map: HashMap<String, Object>
+//		AnalyticsSender.sendEvent(name, type, map)
+//	}
+//
+//	data class OkButtonClickedProperties(val userId: String, val time: Int)
+
+
+	//	fun generateTrial(eventList: EventList) {
+//		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
+//				.addType(TypeSpec.classBuilder("Analytics")
+//						.addType(TypeSpec.companionObjectBuilder("")
+//								.addFunction(FunSpec.builder("create_ok_button_clickedEvent")
+//										.addParameter("user_id", String::class)
+//										.addParameter("time", String::class)
+//										.addStatement("val map = HashMap<String, String>()")
+//										.addStatement("map.put(\"user_id\", user_id)")
+//										.addStatement("map.put(\"time\", time)")
+//										.build()).build()
+//						)
+//						.build())
+//				.build()
+//		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
+//		if (!dir.exists() && !dir.mkdirs()) {
+//			throw IllegalStateException("Couldn't create dir: " + dir);
+//		}
+//		val directoryFile = File(outDir.absolutePath)
+//		file.writeTo(directoryFile)
+//	}
+	private fun writeFiles(vararg array: FileSpec) {
+		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
+		if (!dir.exists() && !dir.mkdirs()) {
+			throw IllegalStateException("Couldn't create dir: ${dir}");
+		}
+		val directoryFile = File(outDir.absolutePath)
+		array.forEach {
+			it.writeTo(directoryFile)
+		}
+	}
 }

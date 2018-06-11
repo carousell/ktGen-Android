@@ -1,7 +1,7 @@
 package com.thecarousell.plugin.model
 
 data class EventList(
-        val default_table: String,
+        val group: String,
         val events: List<Event>)
 
 data class Event(
