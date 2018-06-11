@@ -38,30 +38,18 @@ open class GenerateKotlinTask : DefaultTask() {
 
 		eventList.events.forEach {
 			//
-			val dataModel = createDataModel(it)
-			modelsFileBuilder.addType(dataModel)
+			modelsFileBuilder.addType(createDataModel(it))
 			//
-
-			val function = createFunction(it)
-
-			val functionBuilder = FunSpec.builder(it.track.name + "Event")
-					.addStatement("val map = HashMap<String, String>()")
-			it.track.properties.forEach {
-				functionBuilder
-						.addParameter(it.name, String::class)
-						.addStatement("map.put(\"${it.name}\", ${it.name})")
-			}
-			companionObjectBuilder.addFunction(functionBuilder.build())
+			companionObjectBuilder.addFunction(createFunction(it))
 		}
-
-
-//		analyticsFileBuilder.addType(classBuilder.build()).build()
-		writeFiles(modelsFileBuilder.build())
+		eventsClassBuilder.addType(companionObjectBuilder.build())
+		eventsFileBuilder.addType(eventsClassBuilder.build())
+		writeFiles(modelsFileBuilder.build(), eventsFileBuilder.build())
 	}
 
 
 	private fun createDataModel(event: Event): TypeSpec {
-		val dataModelBuilder = TypeSpec.classBuilder(event.track.name.toCamelCaseCapitalized() + "Properties").addModifiers(KModifier.DATA)
+		val dataModelBuilder = TypeSpec.classBuilder("${event.track.name}Property".toCamelCaseCapitalized()).addModifiers(KModifier.DATA)
 		val constructorBuilder = FunSpec.constructorBuilder()
 		event.track.properties.forEach {
 			constructorBuilder.addParameter(createParameterSpec(it.name.toCamelCase(), it.type))
@@ -70,8 +58,14 @@ open class GenerateKotlinTask : DefaultTask() {
 		return dataModelBuilder.primaryConstructor(constructorBuilder.build()).build()
 	}
 
-	private fun createFunction(event: Event) {
-
+	private fun createFunction(event: Event): FunSpec {
+		val funBuilder = FunSpec.builder(event.track.name.toCamelCase())
+		funBuilder.addParameter("params", ClassName("com.thecarousell.analytics", "${event.track.name}Property".toCamelCaseCapitalized()))
+				.addStatement("val map = HashMap<String, Any?>()")
+		event.track.properties.forEach {
+			funBuilder.addStatement("map.put(\"${it.name}\", params.${it.name.toCamelCase()})")
+		}
+		return funBuilder.build()
 	}
 
 	private fun createProperty(paramName: String, type: String): PropertySpec {
@@ -83,7 +77,7 @@ open class GenerateKotlinTask : DefaultTask() {
 			"INTEGER" -> {
 				dataType = Int::class.asTypeName()
 			}
-			"BOOLEAN"-> {
+			"BOOLEAN" -> {
 				dataType = Boolean::class.asTypeName()
 			}
 			else -> {
@@ -107,7 +101,7 @@ open class GenerateKotlinTask : DefaultTask() {
 				dataType = Int::class.asTypeName()
 				defaultValue = "0"
 			}
-			"BOOLEAN"-> {
+			"BOOLEAN" -> {
 				dataType = Boolean::class.asTypeName()
 				defaultValue = "false"
 			}
@@ -120,36 +114,6 @@ open class GenerateKotlinTask : DefaultTask() {
 				.defaultValue(defaultValue).build()
 	}
 
-
-//	fun okButtonClicked(properties: OkButtonClickedProperties) {
-//		val map: HashMap<String, Object>
-//		AnalyticsSender.sendEvent(name, type, map)
-//	}
-//
-//	data class OkButtonClickedProperties(val userId: String, val time: Int)
-
-
-	//	fun generateTrial(eventList: EventList) {
-//		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
-//				.addType(TypeSpec.classBuilder("Analytics")
-//						.addType(TypeSpec.companionObjectBuilder("")
-//								.addFunction(FunSpec.builder("create_ok_button_clickedEvent")
-//										.addParameter("user_id", String::class)
-//										.addParameter("time", String::class)
-//										.addStatement("val map = HashMap<String, String>()")
-//										.addStatement("map.put(\"user_id\", user_id)")
-//										.addStatement("map.put(\"time\", time)")
-//										.build()).build()
-//						)
-//						.build())
-//				.build()
-//		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
-//		if (!dir.exists() && !dir.mkdirs()) {
-//			throw IllegalStateException("Couldn't create dir: " + dir);
-//		}
-//		val directoryFile = File(outDir.absolutePath)
-//		file.writeTo(directoryFile)
-//	}
 	private fun writeFiles(vararg array: FileSpec) {
 		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
 		if (!dir.exists() && !dir.mkdirs()) {
@@ -158,6 +122,7 @@ open class GenerateKotlinTask : DefaultTask() {
 		val directoryFile = File(outDir.absolutePath)
 		array.forEach {
 			it.writeTo(directoryFile)
+			System.out.println("Writting: ${it}")
 		}
 	}
 }
