@@ -1,4 +1,4 @@
-group: main_actions
+group: main
 
 events:
     - track:
