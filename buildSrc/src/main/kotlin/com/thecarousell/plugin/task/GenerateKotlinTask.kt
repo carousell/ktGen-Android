@@ -34,18 +34,14 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	fun generateAnalyticsClass(eventList: EventList) {
 		val eventsFileBuilder = FileSpec.builder(packageName, "${eventList.group.toCamelCaseCapitalized()}Events")
+		val eventsObjectBuilder = TypeSpec.objectBuilder("${eventList.group.toCamelCaseCapitalized()}Events")
 		val modelsFileBuilder = FileSpec.builder(packageName, "AnalyticsModels")
-		val eventsClassBuilder = TypeSpec.classBuilder("Events")
-		val companionObjectBuilder = TypeSpec.companionObjectBuilder("")
 
 		eventList.events.forEach {
-			//
 			modelsFileBuilder.addType(createDataModel(it))
-			//
-			companionObjectBuilder.addFunction(createFunction(it))
+			eventsObjectBuilder.addFunction(createFunction(it))
 		}
-		eventsClassBuilder.addType(companionObjectBuilder.build())
-		eventsFileBuilder.addType(eventsClassBuilder.build())
+		eventsFileBuilder.addType(eventsObjectBuilder.build())
 		writeFiles(modelsFileBuilder.build(), eventsFileBuilder.build())
 	}
 
