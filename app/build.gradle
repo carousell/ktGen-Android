@@ -43,6 +43,7 @@ dependencies {
 task generateAnalyticsClasses(type: GenerateKotlinTask) {
     srcDir file('events/')
     outDir file('build/generated/source/generatedAnalytics/')
+    packageName 'com.thecarousell.ktgen.analytics'
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {

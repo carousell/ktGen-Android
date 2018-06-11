@@ -15,6 +15,8 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	lateinit var outDir: File
 
+	lateinit var packageName: String
+
 	@TaskAction
 	fun generateCode() {
 		System.out.println("Parsing files: $srcDir")
@@ -31,8 +33,8 @@ open class GenerateKotlinTask : DefaultTask() {
 	}
 
 	fun generateAnalyticsClass(eventList: EventList) {
-		val eventsFileBuilder = FileSpec.builder("com.thecarousell.analytics", "${eventList.group.toCamelCaseCapitalized()}Events")
-		val modelsFileBuilder = FileSpec.builder("com.thecarousell.analytics", "AnalyticsModels")
+		val eventsFileBuilder = FileSpec.builder(packageName, "${eventList.group.toCamelCaseCapitalized()}Events")
+		val modelsFileBuilder = FileSpec.builder(packageName, "AnalyticsModels")
 		val eventsClassBuilder = TypeSpec.classBuilder("Events")
 		val companionObjectBuilder = TypeSpec.companionObjectBuilder("")
 
@@ -60,11 +62,12 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	private fun createFunction(event: Event): FunSpec {
 		val funBuilder = FunSpec.builder(event.track.name.toCamelCase())
-		funBuilder.addParameter("properties", ClassName("com.thecarousell.analytics", "${event.track.name}Properties".toCamelCaseCapitalized()))
+		funBuilder.addParameter("properties", ClassName(packageName, "${event.track.name}Properties".toCamelCaseCapitalized()))
 				.addStatement("val map = HashMap<String, Any?>()")
 		event.track.properties.forEach {
 			funBuilder.addStatement("map.put(\"${it.name}\", properties.${it.name.toCamelCase()})")
 		}
+		funBuilder.addStatement("sendAnalyticsEvent(\"${event.track.name}\", \"${event.track.type}\", map)")
 		return funBuilder.build()
 	}
 
@@ -115,7 +118,7 @@ open class GenerateKotlinTask : DefaultTask() {
 	}
 
 	private fun writeFiles(vararg array: FileSpec) {
-		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
+		val dir = File("${outDir.absolutePath}/${packageName.replace('.', '/')}")
 		if (!dir.exists() && !dir.mkdirs()) {
 			throw IllegalStateException("Couldn't create dir: ${dir}");
 		}
