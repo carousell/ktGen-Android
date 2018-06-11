@@ -42,6 +42,7 @@ dependencies {
 
 task generateAnalyticsClasses(type: GenerateKotlinTask) {
     srcDir file('events/')
+    outDir file('build/generated/source/generatedAnalytics/')
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {

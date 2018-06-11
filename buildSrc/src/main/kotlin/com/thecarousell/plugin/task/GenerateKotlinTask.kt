@@ -11,6 +11,8 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	lateinit var srcDir: File
 
+	lateinit var outDir: File
+
 	@TaskAction
 	fun generateCode() {
 		parseYaml(srcDir)
@@ -24,14 +26,14 @@ open class GenerateKotlinTask : DefaultTask() {
 		directory.walk().forEach {
 			if (it.name.endsWith(".yaml", true)) try {
 				eventParser.loadFromFile(it)
-				generateTrial()
+				generateTrial(outDir)
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
 		}
 	}
 
-	fun generateTrial() {
+	fun generateTrial(outDirectory: File) {
 		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
 				.addType(TypeSpec.classBuilder("Analytics")
 						.addType(TypeSpec.companionObjectBuilder("")
@@ -45,11 +47,11 @@ open class GenerateKotlinTask : DefaultTask() {
 						)
 						.build())
 				.build()
-		val dir = File("app/build/generated/source/generatedAnalytics/com/thecarousell/analytics")
+		val dir = File(outDirectory.absolutePath + "/com/thecarousell/analytics")
 		if (!dir.exists() && !dir.mkdirs()) {
 			throw IllegalStateException("Couldn't create dir: " + dir);
 		}
-		val classFile = File("app/build/generated/source/generatedAnalytics/")
+		val classFile = File(outDirectory.absolutePath)
 		file.writeTo(classFile)
 	}
 
