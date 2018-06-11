@@ -1,21 +1,13 @@
 package com.thecarousell.plugin.task
 
 import com.squareup.kotlinpoet.*
+import com.thecarousell.plugin.extensions.toCamelCase
+import com.thecarousell.plugin.extensions.toCamelCaseCapitalized
 import com.thecarousell.plugin.model.Event
 import com.thecarousell.plugin.model.EventList
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-
-fun String.toCamelCase(): String {
-	return this.toCamelCaseCapitalized().decapitalize()
-}
-
-fun String.toCamelCaseCapitalized(): String {
-	return this.split('_').joinToString("") {
-		it.capitalize()
-	}
-}
 
 open class GenerateKotlinTask : DefaultTask() {
 
