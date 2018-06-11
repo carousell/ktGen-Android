@@ -45,11 +45,11 @@ open class GenerateKotlinTask : DefaultTask() {
 						)
 						.build())
 				.build()
-		val dir = File("analytics/build/generated/source/generatedAnalytics/com/thecarousell/analytics")
+		val dir = File("app/build/generated/source/generatedAnalytics/com/thecarousell/analytics")
 		if (!dir.exists() && !dir.mkdirs()) {
 			throw IllegalStateException("Couldn't create dir: " + dir);
 		}
-		val classFile = File("analytics/build/generated/source/generatedAnalytics/")
+		val classFile = File("app/build/generated/source/generatedAnalytics/")
 		file.writeTo(classFile)
 	}
 

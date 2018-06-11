@@ -1,3 +1,5 @@
+import com.thecarousell.plugin.task.GenerateKotlinTask
+
 apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
@@ -20,6 +22,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets {
+        main.java {
+            srcDirs += "build/generated/source/generatedAnalytics"
+        }
+    }
 }
 
 dependencies {
@@ -29,7 +36,14 @@ dependencies {
 
     implementation 'com.android.support:appcompat-v7:27.1.1'
 
-    implementation project(':analytics')
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
     implementation 'com.android.support:design:27.1.1'
+}
+
+task generateAnalyticsClasses(type: GenerateKotlinTask) {
+    srcDir file('events/')
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn generateAnalyticsClasses
 }
