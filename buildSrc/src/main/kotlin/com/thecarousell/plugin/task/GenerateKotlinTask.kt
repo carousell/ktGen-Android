@@ -32,9 +32,11 @@ open class GenerateKotlinTask : DefaultTask() {
 		}
 	}
 
-	fun generateAnalyticsClass(eventList: EventList) {
-		val eventsFileBuilder = FileSpec.builder(packageName, "${eventList.group.toCamelCaseCapitalized()}Events")
-		val eventsObjectBuilder = TypeSpec.objectBuilder("${eventList.group.toCamelCaseCapitalized()}Events")
+	private fun generateAnalyticsClass(eventList: EventList) {
+		val eventsFileBuilder = FileSpec.builder(packageName,
+				"${eventList.group.toCamelCaseCapitalized()}Events")
+		val eventsObjectBuilder = TypeSpec.objectBuilder(
+				"${eventList.group.toCamelCaseCapitalized()}Events")
 		val modelsFileBuilder = FileSpec.builder(packageName, "AnalyticsModels")
 
 		eventList.events.forEach {
@@ -42,16 +44,15 @@ open class GenerateKotlinTask : DefaultTask() {
 			eventsObjectBuilder.addFunction(createFunction(it))
 		}
 		eventsFileBuilder.addType(eventsObjectBuilder.build())
-		writeFiles(modelsFileBuilder.build(), eventsFileBuilder.build())
+		FileUtils.writeFiles(outDir, packageName, modelsFileBuilder.build(), eventsFileBuilder.build())
 	}
-
 
 	private fun createDataModel(event: Event): TypeSpec {
 		val dataModelBuilder = TypeSpec.classBuilder("${event.track.name}Properties".toCamelCaseCapitalized()).addModifiers(KModifier.DATA)
 		val constructorBuilder = FunSpec.constructorBuilder()
 		event.track.properties.forEach {
-			constructorBuilder.addParameter(createParameterSpec(it.name.toCamelCase(), it.type))
-			dataModelBuilder.addProperty(createProperty(it.name.toCamelCase(), it.type))
+			constructorBuilder.addParameter(GenerateAnalyticsUtils.createParameterSpec(it.name.toCamelCase(), it.type))
+			dataModelBuilder.addProperty(GenerateAnalyticsUtils.createProperty(it.name.toCamelCase(), it.type))
 		}
 		return dataModelBuilder.primaryConstructor(constructorBuilder.build()).build()
 	}
@@ -65,63 +66,5 @@ open class GenerateKotlinTask : DefaultTask() {
 		}
 		funBuilder.addStatement("sendAnalyticsEvent(\"${event.track.name}\", \"${event.track.type}\", map)")
 		return funBuilder.build()
-	}
-
-	private fun createProperty(paramName: String, type: String): PropertySpec {
-		val dataType: ClassName
-		when (type) {
-			"STRING" -> {
-				dataType = String::class.asTypeName().asNullable()
-			}
-			"INTEGER" -> {
-				dataType = Int::class.asTypeName()
-			}
-			"BOOLEAN" -> {
-				dataType = Boolean::class.asTypeName()
-			}
-			else -> {
-				dataType = Int::class.asTypeName()
-			}
-		}
-		return PropertySpec.builder(paramName, dataType)
-				.initializer(paramName)
-				.build()
-	}
-
-	private fun createParameterSpec(paramName: String, type: String): ParameterSpec {
-		val dataType: ClassName
-		val defaultValue: String
-		when (type) {
-			"STRING" -> {
-				dataType = String::class.asTypeName().asNullable()
-				defaultValue = "null"
-			}
-			"INTEGER" -> {
-				dataType = Int::class.asTypeName()
-				defaultValue = "0"
-			}
-			"BOOLEAN" -> {
-				dataType = Boolean::class.asTypeName()
-				defaultValue = "false"
-			}
-			else -> {
-				dataType = Int::class.asTypeName()
-				defaultValue = "null"
-			}
-		}
-		return ParameterSpec.builder(paramName, dataType)
-				.defaultValue(defaultValue).build()
-	}
-
-	private fun writeFiles(vararg array: FileSpec) {
-		val dir = File("${outDir.absolutePath}/${packageName.replace('.', '/')}")
-		if (!dir.exists() && !dir.mkdirs()) {
-			throw IllegalStateException("Couldn't create dir: ${dir}");
-		}
-		val directoryFile = File(outDir.absolutePath)
-		array.forEach {
-			it.writeTo(directoryFile)
-			System.out.println("Writting: ${it}")
-		}
 	}
 }
