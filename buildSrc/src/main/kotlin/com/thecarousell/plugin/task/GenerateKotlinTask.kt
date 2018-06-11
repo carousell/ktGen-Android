@@ -3,6 +3,7 @@ package com.thecarousell.plugin.task
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.thecarousell.plugin.model.EventList
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -15,25 +16,21 @@ open class GenerateKotlinTask : DefaultTask() {
 
 	@TaskAction
 	fun generateCode() {
-		parseYaml(srcDir)
-	}
-
-	private fun parseYaml(directory: File) {
-		System.out.println("Parsing files: $directory")
+		System.out.println("Parsing files: $srcDir")
 
 		val eventParser = EventParser()
 
-		directory.walk().forEach {
+		srcDir.walk().forEach {
 			if (it.name.endsWith(".yaml", true)) try {
-				eventParser.loadFromFile(it)
-				generateTrial(outDir)
+				val eventList = eventParser.loadFromFile(it)
+				generateTrial(eventList)
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}
 		}
 	}
 
-	fun generateTrial(outDirectory: File) {
+	fun generateTrial(eventList: EventList) {
 		val file = FileSpec.builder("com.thecarousell.analytics", "Analytics")
 				.addType(TypeSpec.classBuilder("Analytics")
 						.addType(TypeSpec.companionObjectBuilder("")
@@ -47,12 +44,12 @@ open class GenerateKotlinTask : DefaultTask() {
 						)
 						.build())
 				.build()
-		val dir = File(outDirectory.absolutePath + "/com/thecarousell/analytics")
+		val dir = File(outDir.absolutePath + "/com/thecarousell/analytics")
 		if (!dir.exists() && !dir.mkdirs()) {
 			throw IllegalStateException("Couldn't create dir: " + dir);
 		}
-		val classFile = File(outDirectory.absolutePath)
-		file.writeTo(classFile)
+		val directoryFile = File(outDir.absolutePath)
+		file.writeTo(directoryFile)
 	}
 
 }
