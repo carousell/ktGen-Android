@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.41'
     repositories {
         jcenter()
     }
@@ -18,7 +18,7 @@ dependencies {
     implementation gradleApi()
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     // Jackson
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
@@ -27,10 +27,4 @@ dependencies {
 
     // KotlinPoet
     implementation 'com.squareup:kotlinpoet:0.7.0'
-}
-
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
 }
