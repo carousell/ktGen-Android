@@ -17,13 +17,12 @@ open class GenerateKotlinTask : DefaultTask() {
 	@TaskAction
 	fun generateCode() {
 		System.out.println("Parsing files: $srcDir")
-
 		val analyticsGenerator = AnalyticsGenerator(outDir, packageName)
 
 		srcDir.walk().forEach {
 			if (it.name.endsWith(".yaml", true)) try {
 				val eventList = EventParser.loadFromFile(it)
-				analyticsGenerator.generateAnalyticsClass(eventList)
+				analyticsGenerator.generateAnalyticsClasses(eventList)
 			} catch (e: Exception) {
 				e.printStackTrace()
 			}

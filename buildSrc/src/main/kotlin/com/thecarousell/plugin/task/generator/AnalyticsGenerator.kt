@@ -11,7 +11,7 @@ import java.io.File
 
 class AnalyticsGenerator(private val outDir: File, private val packageName: String) {
 
-    fun generateAnalyticsClass(eventList: EventList) {
+    fun generateAnalyticsClasses(eventList: EventList) {
         val objectName = "${eventList.group.toCamelCaseCapitalized()}Events"
         val eventsFileBuilder = FileSpec.builder(packageName, objectName)
         val eventsObjectBuilder = TypeSpec.objectBuilder(objectName)
