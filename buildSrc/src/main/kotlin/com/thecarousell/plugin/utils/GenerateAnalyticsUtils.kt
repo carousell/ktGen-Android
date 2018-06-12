@@ -1,4 +1,4 @@
-package com.thecarousell.plugin.task
+package com.thecarousell.plugin.utils
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterSpec

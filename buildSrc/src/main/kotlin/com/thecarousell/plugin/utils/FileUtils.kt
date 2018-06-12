@@ -1,4 +1,4 @@
-package com.thecarousell.plugin.task
+package com.thecarousell.plugin.utils
 
 import com.squareup.kotlinpoet.FileSpec
 import java.io.File

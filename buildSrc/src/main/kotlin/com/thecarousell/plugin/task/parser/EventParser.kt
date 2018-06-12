@@ -1,4 +1,4 @@
-package com.thecarousell.plugin.task
+package com.thecarousell.plugin.task.parser
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -8,7 +8,7 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
 
-class EventParser {
+object EventParser {
 
     private val mapper = ObjectMapper(YAMLFactory()).registerModule(KotlinModule())
 
